@@ -1,6 +1,15 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../modals/User.js';
+import crypto from 'crypto';
+
+
+const generateResetToken = () => {
+  const token = crypto.randomBytes(32).toString('hex');
+  return token;
+}
+
+
 
 export const register = async (req, res) => {
     try {
@@ -42,3 +51,28 @@ export const register = async (req, res) => {
   export const logout = (req, res) => {
     res.json({ message: 'Logged out successfully' });
   };
+
+
+  export const forgotPassword = async(req,res) => {
+    try {
+
+      const {email} = req.body;
+      const user = await User.findOne({email});
+      if(!user) {
+        return res.status(404).json({error: "user not found"});
+      }   
+      
+      const resetToken = generateResetToken();
+      user.resetToken = resetToken;
+      user.resetTokenExpiration = Date.now() + 3600000;
+      await user.save();
+
+      sendResetTokenMail(email, resetToken);
+      res.json({message: "password reset token sent successfully to your email"});
+
+
+    } catch (error) {
+      res.status(500).json({error : error})
+    }
+  }
+
