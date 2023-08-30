@@ -121,3 +121,28 @@ export const getUserProfile = async (req, res) => {
     res.status(500).json({ error: 'An error occurred' });
   }
 };
+
+export const updateUserProfile = async (req, res) => {
+  try {
+    // Retrieve the user ID from the JWT payload
+    const userId = req.user.userId;
+
+    // Fetch the user from the database based on the user ID
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update the user's profile information
+    user.name = req.body.name || user.name;
+    user.profilePicture = req.body.profilePicture || user.profilePicture;
+    user.bio = req.body.bio || user.bio;
+
+    await user.save();
+
+    res.json({ message: 'User profile updated successfully', user });
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred' });
+  }
+};
