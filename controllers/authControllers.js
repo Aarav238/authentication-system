@@ -104,3 +104,20 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ error: error });
   }
 };
+export const getUserProfile = async (req, res) => {
+  try {
+    // Retrieve the user ID from the JWT payload
+    const userId = req.user.userId;
+    
+    // Fetch the user from the database based on the user ID
+    const user = await User.findById(userId).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred' });
+  }
+};
