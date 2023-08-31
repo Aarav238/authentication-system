@@ -164,3 +164,31 @@ export const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+
+export const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user.userId;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const validPassword = await bcrypt.compare(oldPassword, user.password);
+
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Invalid old password' });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedNewPassword;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred' });
+  }
+};
